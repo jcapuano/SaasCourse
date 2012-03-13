@@ -1,4 +1,9 @@
 class MoviesController < ApplicationController
+  #def initialize
+    #@all_ratings = Movie.all_ratings  
+  #end
+  
+  
   helper_method :sort_by_title?
   helper_method :sort_by_date?
 
@@ -17,14 +22,26 @@ class MoviesController < ApplicationController
   end
 
   def index
+    @all_ratings = Movie.all_ratings  
+    if params[:ratings] != nil
+      @selected_ratings = params[:ratings].keys
+    else
+      @selected_ratings = []
+    end
+    opts = Hash.new    
+
+    if @selected_ratings.count > 0
+      opts[:conditions] = {:rating => @selected_ratings}
+    end
+    
     @sort_by = params[:sort_by]
     if sort_by_title?
-      @movies = Movie.find(:all, :order => "title")
-    elsif sort_by_date?
-      @movies = Movie.find(:all, :order => "release_date")
-    else
-      @movies = Movie.all
+      opts[:order] = "title"      
+    elsif sort_by_date?      
+      opts[:order] = "release_date"      
     end
+    
+    @movies = Movie.find(:all, opts)
   end
 
   def new
