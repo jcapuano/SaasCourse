@@ -6,13 +6,18 @@ class MoviesController < ApplicationController
   
   helper_method :sort_by_title?
   helper_method :sort_by_date?
-
+  helper_method :rating_selected?
+  
   def sort_by_title?
     return @sort_by == "title"
   end
 
   def sort_by_date?
     @sort_by == "date"
+  end
+  
+  def rating_selected?(rating)
+    @selected_ratings.include?(rating)
   end
 
   def show  
@@ -25,6 +30,8 @@ class MoviesController < ApplicationController
     @all_ratings = Movie.all_ratings  
     if params[:ratings] != nil
       @selected_ratings = params[:ratings].keys
+    elsif session[:ratings] != nil
+      @selected_ratings = session[:ratings]
     else
       @selected_ratings = []
     end
@@ -34,11 +41,22 @@ class MoviesController < ApplicationController
       opts[:conditions] = {:rating => @selected_ratings}
     end
     
-    @sort_by = params[:sort_by]
+    if params[:sort_by] != nil
+      @sort_by = params[:sort_by]
+    elsif session[:sort_by] != nil
+      @sort_by = session[:sort_by]
+    end
     if sort_by_title?
       opts[:order] = "title"      
     elsif sort_by_date?      
       opts[:order] = "release_date"      
+    end
+    
+    if @sort_by != session[:sort_by]
+      session[:sort_by] = @sort_by
+    end
+    if @selected_ratings != session[:ratings] and @selected_ratings != []
+      session[:ratings] = @selected_ratings
     end
     
     @movies = Movie.find(:all, opts)
